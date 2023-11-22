@@ -6,7 +6,7 @@
 
 
 ## Proyecto: Alarma de Incendios.
-![Tinkercad](./img/ArduinoTinkercad.jpg)
+![Tinkercad](./imagen/ArduinoTinkercad.jpg)
 
 
 ## Descripción
@@ -15,7 +15,7 @@ A MAS DE 60 GRADOS MUEVE EL SERVO, EL LED DERECHO TITILA Y TITILA LA PALABRA "IN
 TODO EL SISTEMA SE PRENDE Y APAGA CON EL BOTON ROJO DEL CONTROL REMOTO Y LA LUZ LED DE LA IZQUIERDA INDICA SI EL SISTEMA ESTÁ ENCENDIDO.
 
 ## Algoritmo: Estacion del año.
-![Tempetaturas](./img/TemperaturasPorEstacionBsas.jpg)
+![Tempetaturas](./imagen/TemperaturasPorEstacionBsas.jpg)
 
 ## Descripción
 EL ALGORITMO TOMA LAS TEMPERATURAS MAYORES A 25 GRADOS COMO VERANO, LAS MENORES A 14 COMO INVIERNO. 
