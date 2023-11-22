@@ -1,0 +1,154 @@
+// C++ code
+//CURTO EIVERS, TOMÁS LEÓN
+//DETECTOR DE INCENDIOS QUE MUESTRA LA TEMPERTATURA ACTUAL Y LA
+//ESTACION CALCULADA POR UN ALGORITMO, TAMBIEN FUNCIONANDO COMO
+//DETECTOR DE INCENDIOS, A MAS DE 60 GRADOS MUEVE EL SERVO, EL LED
+//DERECHO TITILA Y TITILA LA PALABRA "INCENDIO EN EL DISPLAY".
+//TODO EL SISTEMA SE PRENDE Y APAGA CON EL BOTON ROJO DEL CONTROL
+//REMOTO CON LA LUZ LED DE LA IZQUIERDA INDICA SI EL SISTEMA ESTÁ
+//ENCENDIDO.
+
+
+//Importacion de librerias
+#include <LiquidCrystal.h>
+#include <IRremote.h>
+//Definiciones de pins
+#define SENSOR A0
+#define BOTON 0xFF00BF00
+#define LED1 12
+#define LED2 13
+//configuración servo
+#include <Servo.h>
+#define PIN_SERVO 9
+Servo myServo;
+//configuración lcd
+LiquidCrystal lcd(2,3,4,5,6,7);
+//definicion de variables
+int temperatura;
+int lectura;
+int IR = 11;
+int encendido = 0;
+int temperatura_anterior = 0;
+int diferencia = 0;
+IRrecv irrecv(IR);
+decode_results results;
+//SETUP
+void setup()
+{
+  lcd.begin(16, 2); 
+  Serial.begin(9600); 
+  IrReceiver.begin(IR, DISABLE_LED_FEEDBACK);
+  myServo.attach(9, 500, 2500);
+	pinMode(LED1, OUTPUT);
+	pinMode(LED2, OUTPUT);
+}
+//LECTURA DEL SENSOR Y MAPEO A TEMPERATURA
+void leer_temperatura(){
+	lectura = analogRead(SENSOR);
+  temperatura = map(lectura,20,358,-40,125);
+}
+//FUNCION PARA ESCRIBIR LA TEMPERATURA EN EL LED
+void escribir_lcd(int mensaje, int fila, int columna){
+  	lcd.setCursor(columna, fila);
+	lcd.print(mensaje);
+}
+//MUESTRA EN DISPLAY LA TEMPERATURA CON LA C DE CELCIUS
+void mostrar_temperatura(){  
+	escribir_lcd(temperatura, 0, 0);
+  lcd.setCursor(3, 0);
+  lcd.print("C");
+}
+//ENCIENDE Y APAGA EL SISTEMA CON EL BOTON 
+void control(){
+  if (IrReceiver.decode()){
+    if (IrReceiver.decodedIRData.decodedRawData == BOTON){
+		encendido = !encendido;
+      	digitalWrite(LED1, encendido);
+        IrReceiver.resume();
+        delay(500);
+    }
+  }
+}
+//ALGORITMO DE LA ESTACION
+void estacion(){
+  diferencia = temperatura - temperatura_anterior;
+  if (temperatura>24){ //EN VERANO PUEDE SER MAS DE 24
+    lcd.setCursor(0, 1);
+  	lcd.print("VERANO");
+  }
+  else{
+    if (temperatura<12){ //EN INVIERNO PUEDE SER MENOS DE 12
+    	lcd.setCursor(0, 1);
+  		lcd.print("INVIERNO");
+    }
+    else{
+      if (diferencia < 3){ //EN EL RANGO INTERMEDIO EN SUBIDA ES OTO
+      	lcd.setCursor(0, 1);
+  		lcd.print("OTONO");
+      }
+      else{
+        if (diferencia > 3){ //EN EL RANGO INTERMEDIO EN BAJADA ES OPRITO
+        	lcd.setCursor(0, 1);
+  			lcd.print("PRIMAVERA");
+        }
+        else{
+          if (temperatura > 18){ //EN LOS RANGOS ESTABLECIDOS SI LA VARIACION ES CORTA ES VERANO
+          	lcd.setCursor(0, 1);
+  			lcd.print("VERANO");
+          }
+          else{
+          	lcd.setCursor(0, 1); //EN LOS RANGOS ESTABLECIDOS SI LA VARIACION ES CORTA ES INVIRNO
+  			lcd.print("INVIERNO");
+          }
+        }
+      }	
+    }
+  }
+  if (temperatura != temperatura_anterior){ // RESETEO LA VARIABLE
+  	temperatura_anterior = temperatura;
+  }
+}
+//ACCIONES SI SE PASAN LOS 60 GRADOS.
+void incendio(){
+  lcd.setCursor(6, 0);
+  lcd.print("INCENDIO");
+  digitalWrite(LED2, HIGH);
+  delay(500);
+  lcd.clear();
+  delay(100);
+  digitalWrite(LED2, LOW);
+  myServo.write(0);
+  delay(1000);
+}
+//SE EMCARGA DE PRENDER Y APAGAR EL SISTEMA POR MEDIO DEL CONTROL
+void sistema(){
+  if (encendido == 1){
+  	leer_temperatura();
+ 	mostrar_temperatura();
+    estacion();
+    if (temperatura>60){
+    	incendio();
+    }
+  }
+  else{
+  	lcd.clear();
+  }
+}
+//FINALIZA EL LOOP BORRANDO LA PANTALLA
+void loop_end(){
+  myServo.write(90);
+  Serial.println(encendido);
+  delay(1000);
+}
+
+void main_function(){
+  lcd.clear();
+  control();
+  sistema();
+  loop_end();
+}
+
+void loop()
+{
+  main_function();
+}
